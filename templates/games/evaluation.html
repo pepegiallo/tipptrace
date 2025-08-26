@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Auswertung – {{ game.name }}</h1>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{{ url_for('games.detail', game_id=game.id) }}">Zurück</a>
+      <a class="btn btn-outline-primary" href="{{ url_for('games.config', game_id=game.id) }}">Konfiguration</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card h-100"><div class="card-body">
+        <div class="text-muted small">Gesamteinsatz</div>
+        <div class="fs-5">{{ total_stake | money }} €</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100"><div class="card-body">
+        <div class="text-muted small">Topf Siege</div>
+        <div class="fs-5">{{ victory_pot | money }} €</div>
+        <div class="text-muted small">pro Spieltag</div>
+        <div class="fs-6">{{ per_matchday | money }} €</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100"><div class="card-body">
+        <div class="text-muted small">Topf Platzierung</div>
+        <div class="fs-5">{{ placement_pot | money }} €</div>
+        <div class="text-muted small">Summe Prozente</div>
+        <div class="fs-6">{{ placement_percent_sum }} %</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100"><div class="card-body">
+        <div class="text-muted small">Mitglieder</div>
+        <div class="fs-5">{{ game.members|length }}</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Platz</th>
+          <th>Mitglied</th>
+          <th>Punkte</th>
+          <th>Siege</th>
+          <th>Ausschüttung Siege</th>
+          <th>Ausschüttung Platzierung</th>
+          <th>Gesamt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.rank }}</td>
+            <td>
+              {{ r.member.first_name }} {{ r.member.last_name }}
+              {% if r.member.nickname %}<span class="text-muted">({{ r.member.nickname }})</span>{% endif %}
+            </td>
+            <td>{{ r.points }}</td>
+            <td>{{ r.victories }}</td>
+            <td>{{ r.payout_victories | money }} €</td>
+            <td>{{ r.payout_placement | money }} €</td>
+            <td><strong>{{ r.payout_total | money }} €</strong></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

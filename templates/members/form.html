@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1 class="h4 mb-3">
+    {% if member %}Mitglied bearbeiten{% else %}Neues Mitglied anlegen{% endif %}
+    <small class="text-muted">– {{ game.name }}</small>
+  </h1>
+
+  <!-- Stammdaten-Formular -->
+  <form method="post" class="row g-3 mb-4">
+    <input type="hidden" name="action" value="save_member">
+    <div class="col-md-3">
+      <label class="form-label">Vorname</label>
+      <input name="first_name" class="form-control" value="{{ member.first_name if member else '' }}" required>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Nachname</label>
+      <input name="last_name" class="form-control" value="{{ member.last_name if member else '' }}" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">E-Mail</label>
+      <input type="email" name="email" class="form-control" value="{{ member.email if member else '' }}" required>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label">Nickname</label>
+      <input name="nickname" class="form-control" value="{{ (member.nickname or '') if member else '' }}">
+    </div>
+
+    <div class="col-12"><hr></div>
+
+    <div class="col-md-4">
+      <label class="form-label">Zahlungsart – Bezeichnung</label>
+      <input name="pm_label" class="form-control" value="{{ member.payment_method.label if member and member.payment_method else '' }}" required>
+    </div>
+    <div class="col-md-8">
+      <label class="form-label">Zahlungsart – Referenz</label>
+      <input name="pm_reference" class="form-control" value="{{ member.payment_method.reference if member and member.payment_method else '' }}" placeholder="z. B. IBAN / Verwendungszweck">
+    </div>
+
+    <div class="col-12">
+      <button class="btn btn-primary">{{ 'Speichern' if member else 'Anlegen' }}</button>
+      <a class="btn btn-secondary" href="{{ url_for('games.detail', game_id=game.id) }}">Zurück</a>
+    </div>
+  </form>
+
+  {% if member %}
+    <div class="row g-4">
+      <!-- Siege-Status -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">Neuen Siege-Status hinzufügen</div>
+          <div class="card-body">
+              <form method="post">
+                <input type="hidden" name="action" value="add_victory">
+                <div class="row g-3">
+                  <div class="col-6">
+                    <label class="form-label">Siege (Float)</label>
+                    <input class="form-control" name="new_victories" placeholder="z. B. 3.5">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label">Datum</label>
+                    <input type="date" class="form-control" name="new_victories_date" value="{{ today.isoformat() }}">
+                  </div>
+                  <div class="col-12">
+                    <button class="btn btn-outline-primary">Hinzufügen</button>
+                  </div>
+                </div>
+              </form>
+          </div>
+          {% if member.victory_statuses %}
+          <ul class="list-group list-group-flush">
+            {% for v in member.victory_statuses %}
+              <li class="list-group-item d-flex justify-content-between">
+                <span>{{ v.date.isoformat() }}</span>
+                <strong>{{ v.victories }}</strong>
+              </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Punkte-Status -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">Neuen Punkte-Status hinzufügen</div>
+          <div class="card-body">
+              <form method="post">
+                <input type="hidden" name="action" value="add_points">
+                <div class="row g-3">
+                  <div class="col-6">
+                    <label class="form-label">Punkte (Integer)</label>
+                    <input class="form-control" name="new_points" placeholder="z. B. 12">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label">Datum</label>
+                    <input type="date" class="form-control" name="new_points_date" value="{{ today.isoformat() }}">
+                  </div>
+                  <div class="col-12">
+                    <button class="btn btn-outline-primary">Hinzufügen</button>
+                  </div>
+                </div>
+              </form>
+          </div>
+          {% if member.points_statuses %}
+          <ul class="list-group list-group-flush">
+            {% for p in member.points_statuses %}
+              <li class="list-group-item d-flex justify-content-between">
+                <span>{{ p.date.isoformat() }}</span>
+                <strong>{{ p.points }}</strong>
+              </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

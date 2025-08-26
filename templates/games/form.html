@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1 class="h4 mb-3">{{ 'Tippspiel bearbeiten' if game else 'Neues Tippspiel anlegen' }}</h1>
+
+  <form method="post" class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Name</label>
+      <input name="name" class="form-control" value="{{ game.name if game else '' }}" placeholder="z. B. EM 2028 Büro-Tipp">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Einsatz pro Person (€)</label>
+      <input name="stake_per_person" class="form-control" value="{{ game.stake_per_person if game else '' }}" placeholder="5.00">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">URL</label>
+      <input name="url" class="form-control" value="{{ game.url if game else '' }}" placeholder="https://...">
+    </div>
+
+    <div class="col-12">
+      <button class="btn btn-primary">{{ 'Speichern' if game else 'Anlegen' }}</button>
+      <a class="btn btn-secondary" href="{{ url_for('main.index') }}">Abbrechen</a>
+    </div>
+  </form>
+{% endblock %}

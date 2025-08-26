@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1 class="h4 mb-3">Konfiguration – {{ game.name }}</h1>
+
+  <form method="post" class="row g-3 mb-4">
+    <input type="hidden" name="action" value="save_config">
+    <div class="col-md-4">
+      <label class="form-label">Siege – Anteil (%)</label>
+      <input name="victory_share_percent" class="form-control" value="{{ game.config.victory_share_percent }}">
+      <div class="form-text">Anteil des Gesamteinsatzes, der über Siege ausgeschüttet wird.</div>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Platzierung – Anteil (%)</label>
+      <input name="placement_share_percent" class="form-control" value="{{ game.config.placement_share_percent }}">
+      <div class="form-text">Muss zusammen mit „Siege“ exakt 100 % ergeben.</div>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Anzahl Spieltage</label>
+      <input name="num_matchdays" class="form-control" value="{{ game.config.num_matchdays }}">
+      <div class="form-text">Wird zur Berechnung der Ausschüttung pro Spieltag verwendet.</div>
+    </div>
+    <div class="col-12">
+      <button class="btn btn-primary">Konfiguration speichern</button>
+      <a class="btn btn-secondary" href="{{ url_for('games.detail', game_id=game.id) }}">Zurück</a>
+    </div>
+  </form>
+
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">Platzierungs-Ausschüttung (Prozente)</div>
+        <div class="card-body">
+          <form method="post" class="row g-3">
+            <input type="hidden" name="action" value="add_rank">
+            <div class="col-md-4">
+              <label class="form-label">Platz</label>
+              <input name="rank" class="form-control" placeholder="z. B. 1">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Prozent</label>
+              <input name="percent" class="form-control" placeholder="z. B. 60">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button class="btn btn-outline-primary w-100">Hinzufügen</button>
+            </div>
+          </form>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% if game.placement_payouts %}
+            {% for r in game.placement_payouts %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Platz {{ r.rank }} – {{ r.percent }} %</span>
+                <form method="post" action="{{ url_for('games.delete_rank', game_id=game.id, rank_id=r.id) }}" onsubmit="return confirm('Regel wirklich löschen?');">
+                  <button class="btn btn-sm btn-outline-danger">Löschen</button>
+                </form>
+              </li>
+            {% endfor %}
+          {% else %}
+            <li class="list-group-item">Noch keine Regeln erfasst.</li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+    <div class="col-lg-6 mt-3 mt-lg-0">
+      <div class="alert alert-info">
+        <strong>Hinweis:</strong> Die Summe der Prozente hier muss nicht zwingend 100 ergeben.
+        Die Ausschüttung erfolgt auf Basis des Platzierungs-Topfs: <em>Platzierungs-Topf × Prozent</em> für den jeweiligen Platz.
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="text-muted small">Gesamteinsatz</div>
+          <div class="fs-6">{{ game.total_stake | money }} €</div>
+          <div class="text-muted small mt-2">Topf Siege</div>
+          <div class="fs-6">
+            {{ (game.total_stake * game.config.victory_share_percent / 100) | money }} €
+            ({{ game.config.victory_share_percent }} %)
+          </div>
+          <div class="text-muted small mt-2">Topf Platzierung</div>
+          <div class="fs-6">
+            {{ (game.total_stake * game.config.placement_share_percent / 100) | money }} €
+            ({{ game.config.placement_share_percent }} %)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

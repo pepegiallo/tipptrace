@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3">Alle Tippspiele</h1>
+    <a class="btn btn-primary" href="{{ url_for('games.create') }}">Neues Tippspiel</a>
+  </div>
+
+  {% if games %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Einsatz / Person</th>
+            <th>Mitglieder</th>
+            <th>Gesamteinsatz</th>
+            <th>Aktionen</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for g in games %}
+          <tr>
+            <td><a href="{{ url_for('games.detail', game_id=g.id) }}">{{ g.name }}</a></td>
+            <td>{{ g.stake_per_person | money }} €</td>
+            <td>{{ g.members|length }}</td>
+            <td>{{ g.total_stake | money }} €</td>
+            <td class="text-nowrap">
+              <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('games.edit', game_id=g.id) }}">Bearbeiten</a>
+              <form action="{{ url_for('games.delete', game_id=g.id) }}" method="post" class="d-inline" onsubmit="return confirm('Dieses Tippspiel wirklich löschen?');">
+                <button class="btn btn-sm btn-outline-danger">Löschen</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>Noch keine Tippspiele vorhanden.</p>
+  {% endif %}
+{% endblock %}
