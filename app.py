@@ -22,9 +22,8 @@ def _resolve_database_url() -> str:
     if env_url:
         return env_url
 
-    # Default: absolute Pfad; für SQLite muss es 'sqlite:////ABSOLUTER/PFAD' sein
-    default_db_path = "/var/lib/tipptrace/app.db"
-    return f"sqlite:////{default_db_path.lstrip('/')}"
+    # Default
+    return f"sqlite:///data/database.db"
 
 
 def _ensure_sqlite_directory(db_url: str) -> None:
@@ -123,3 +122,4 @@ if __name__ == "__main__":
     port = int(os.getenv("FLASK_RUN_PORT", "8000"))
     debug = os.getenv("FLASK_DEBUG", "0") == "1"
     app.run(host=host, port=port, debug=debug)
+
