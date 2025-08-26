@@ -23,6 +23,7 @@ python app.py
 
 **Setup**
 
+Datei */tmp/deploy_tipptrace_pi.sh* erstellen:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -167,6 +168,12 @@ echo "Datenverz.:        ${DATA_DIR}"
 echo "-------------------------------------------"
 ```
 
+Skript ausführen:
+```bash
+chmod +x /tmp/deploy_tipptrace_pi.sh
+sudo /tmp/deploy_tipptrace_pi.sh
+```
+
 **Status prüfen**
 ```bash
 systemctl status tipptrace.service
@@ -179,5 +186,6 @@ cd /opt/tipptrace
 sudo -u tipptrace git pull
 sudo systemctl restart tipptrace.service
 ```
+
 
 
