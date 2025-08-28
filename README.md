@@ -2,24 +2,30 @@
 
 **Allgemein**
 
-Webanwendung zur Verwaltung von Tippspielen. Es können mehrere Tippspiele mit Mitgliedern, Einsätzen, Auszahlungstöpfen und Auszahlungsverteilung angelegt werden.
+Webanwendung zur Verwaltung von Tippspielen. Es können mehrere Tippspiele mit Mitgliedern, Einsätzen, Auszahlungstöpfen und der Auszahlungsverteilung angelegt werden.
 Die Spieltagssiege und Punkte müssen manuell gepflegt werden.
 
 ## Start
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install flask sqlalchemy
+# Linux/macOS:
+source .venv/bin/activate
+# Windows cmd.exe:
+.venv\Scripts\activate.bat
+# Windows PowerShell:
+.venv\Scripts\Activate.ps1
 
-# App starten
-export FLASK_APP=app.py         # Windows PowerShell: $env:FLASK_APP="app.py"
-export FLASK_ENV=development    # optional
-python app.py
-# oder: flask run
+pip install -r requirements.txt
+
+# Development-Start:
+# Variante A (empfohlen):
+flask --app app:app run --debug
+# Variante B:
+export FLASK_APP=app.py && export FLASK_DEBUG=1 && flask run
 ```
 
-## Deployment Raspberry PI
+## Deployment Raspberry Pi
 
 **Setup**
 
@@ -67,8 +73,9 @@ if [[ ! -d "${APP_DIR}/.git" ]]; then
   sudo -u "${APP_USER}" git clone "${APP_REPO_URL}" "${APP_DIR}"
 else
   pushd "${APP_DIR}" >/dev/null
-  sudo -u "${APP_USER}" git fetch --all
-  sudo -u "${APP_USER}" git reset --hard origin/$(sudo -u "${APP_USER}" git rev-parse --abbrev-ref HEAD || echo main)
+  sudo -u "$APP_USER" git fetch --all
+  sudo -u "$APP_USER" git checkout -f main
+  sudo -u "$APP_USER" git reset --hard origin/main
   popd >/dev/null
 fi
 
@@ -162,7 +169,7 @@ echo "Deployment fertig."
 echo "Service-Status:    systemctl status ${APP_NAME}.service"
 echo "Logs (Error):      tail -f ${LOG_DIR}/error.log"
 echo "Logs (Access):     tail -f ${LOG_DIR}/access.log"
-echo "HTTP erreichbar:   http://${BIND_IP}:${BIND_PORT}"
+echo "HTTP erreichbar:   http://<SERVER-IP>:${BIND_PORT}"
 echo "Codepfad:          ${APP_DIR}"
 echo "Datenverz.:        ${DATA_DIR}"
 echo "-------------------------------------------"
@@ -186,6 +193,7 @@ cd /opt/tipptrace
 sudo -u tipptrace git pull
 sudo systemctl restart tipptrace.service
 ```
+
 
 
 
