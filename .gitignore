@@ -1,0 +1,7 @@
+/data/*
+!data/.keep
+*.db
+__pycache__/
+*.pyc
+.venv/
+instance/
