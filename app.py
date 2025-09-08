@@ -13,17 +13,17 @@ from blueprints.members import members_bp
 
 def _resolve_database_url() -> str:
     """
-    Bevorzugt Umgebungsvariablen:
-      - SQLALCHEMY_DATABASE_URI
+    Bevorzugt genau EINE Variable:
+      - DATABASE_URI
+    Optional zur Kompatibilität:
       - DATABASE_URL
-    Fallback: sqlite in /var/lib/tipptrace/app.db (passt zu deploy-Skript)
+    Fallback: sqlite in ./data/database.db (im Container: /app/data, gemountet auf /data)
     """
-    env_url = os.getenv("SQLALCHEMY_DATABASE_URI") or os.getenv("DATABASE_URL")
+    env_url = os.getenv("DATABASE_URI") or os.getenv("DATABASE_URL")
     if env_url:
         return env_url
-
-    # Default
-    return f"sqlite:///data/database.db"
+    # Default (relativ -> /app/data/database.db; Dockerfile mountet /data als Volume)
+    return "sqlite:///data/database.db"
 
 
 def _ensure_sqlite_directory(db_url: str) -> None:
@@ -40,7 +40,7 @@ def _ensure_sqlite_directory(db_url: str) -> None:
     if db_url.startswith("sqlite:////"):
         fs_path = "/" + path_part  # absolut
     elif db_url.startswith("sqlite:///"):
-        # relativ zum Working Directory (systemd setzt WorkingDirectory aufs Repo)
+        # relativ zum Working Directory (systemd/Container: /app)
         fs_path = os.path.abspath(path_part)
     else:
         # andere Formen (z. B. sqlite://) ignorieren
@@ -66,9 +66,7 @@ def _configure_logging(app: Flask) -> None:
 
     handler = RotatingFileHandler(log_file, maxBytes=1_000_000, backupCount=3)
     handler.setLevel(logging.INFO)
-    formatter = logging.Formatter(
-        "%(asctime)s %(levelname)s [%(name)s] %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s %(levelname)s [%(name)s] %(message)s")
     handler.setFormatter(formatter)
 
     app.logger.setLevel(logging.INFO)
@@ -88,15 +86,21 @@ def create_app():
     # Datenbank-URL auflösen & ggf. Verzeichnis anlegen
     db_url = _resolve_database_url()
     _ensure_sqlite_directory(db_url)
-    app.config["DATABASE_URL"] = db_url
+    # Einheitlich nur noch DATABASE_URI in der App führen
+    app.config["DATABASE_URI"] = db_url
 
     # DB initialisieren
-    init_engine_and_session(app.config["DATABASE_URL"])
+    init_engine_and_session(app.config["DATABASE_URI"])
     init_db()
     app.teardown_appcontext(close_db)
 
     # Optionales File-Logging (ergänzend zu Gunicorn-Logs)
     _configure_logging(app)
+
+    # Healthcheck-Endpoint (für Docker HEALTHCHECK)
+    @app.get("/healthz")
+    def healthz():
+        return {"status": "ok"}, 200
 
     # Jinja-Filter: Geldformat (2 Nachkommastellen)
     @app.template_filter("money")
@@ -122,4 +126,3 @@ if __name__ == "__main__":
     port = int(os.getenv("FLASK_RUN_PORT", "8000"))
     debug = os.getenv("FLASK_DEBUG", "0") == "1"
     app.run(host=host, port=port, debug=debug)
-
