@@ -5,9 +5,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000
 
-# (Optional) Build Tools – meist nicht nötig, aber schadet nicht bei manchen Wheels
+# System-Abhängigkeiten (für psycopg2/SSL/libpq; ARM-kompatibel)
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
       build-essential \
+      libpq5 \
+      libpq-dev \
+      ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Non-root User
@@ -25,10 +28,11 @@ COPY . .
 RUN mkdir -p /data && chown -R appuser:appuser /data /app
 VOLUME ["/data"]
 
-# Default-DB (per Compose überschreibbar)
-ENV SQLALCHEMY_DATABASE_URI=sqlite:////data/app.db
+# Default-DB (per ENV überschreibbar) – nur EINE Variable mit Fallback-Logik in app.py
+# Hinweis: Für Supabase einfach beim Start DATABASE_URI setzen.
+ENV DATABASE_URI=sqlite:////data/app.db
 
-# HEALTHCHECK: keine extr. Tools (curl/wget) nötig – wir nutzen Python
+# HEALTHCHECK – pingt /healthz
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD python - <<'PY' || exit 1
 import os, sys, urllib.request
@@ -45,5 +49,5 @@ PY
 EXPOSE 8000
 USER appuser
 
-# WICHTIG: Start über wsgi:app, damit /healthz ohne Änderung an app.py existiert
+# Start über Gunicorn (WSGI)
 CMD ["gunicorn", "--workers", "2", "--bind", "0.0.0.0:8000", "wsgi:app"]
