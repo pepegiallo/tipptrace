@@ -32,19 +32,17 @@ VOLUME ["/data"]
 # Hinweis: Für Supabase einfach beim Start DATABASE_URI setzen.
 ENV DATABASE_URI=sqlite:////data/app.db
 
-# HEALTHCHECK – pingt /healthz
+# HEALTHCHECK – pingt /healthz via Python Einzeiler
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD python - <<'PY' || exit 1
-import os, sys, urllib.request
-port = os.getenv("PORT", "8000")
-url = f"http://127.0.0.1:{port}/healthz"
-try:
-    with urllib.request.urlopen(url, timeout=2) as r:
-        ok = (200 <= r.status < 300)
-        sys.exit(0 if ok else 1)
-except Exception:
-    sys.exit(1)
-PY
+  CMD python -c "import os,sys,urllib.request; url=f'http://127.0.0.1:{os.getenv(\"PORT\",\"8000\")}/healthz'; \
+import urllib.request; \
+import socket; \
+socket.setdefaulttimeout(2); \
+try: \
+    with urllib.request.urlopen(url) as r: \
+        sys.exit(0 if 200 <= r.status < 300 else 1) \
+except Exception: \
+    sys.exit(1)"
 
 EXPOSE 8000
 USER appuser
